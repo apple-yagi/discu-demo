@@ -1,0 +1,10 @@
+.header {
+  background-color: antiquewhite;
+  height: 50px;
+}
+
+@media screen and (max-width: 480px) {
+  .header {
+    height: 40px;
+  }
+}
