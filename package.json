@@ -8,7 +8,7 @@
     "start": "next start",
     "export": "npm run build && next export",
     "deploy": "firebase deploy",
-    "dep-h": "firebase deploy --only hosting"
+    "dep-h": "yarn export && firebase deploy --only hosting"
   },
   "dependencies": {
     "@material-ui/core": "^4.11.2",
