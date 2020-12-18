@@ -1,6 +1,6 @@
 push:
-	git push origin main
+	git push origin master
 pull:
-	git pull origin main
+	git pull origin master
 js:
 	json-server --watch db.json --p 3001
