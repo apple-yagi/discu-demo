@@ -1,5 +1,4 @@
 import { CircularProgress, createStyles, makeStyles } from '@material-ui/core'
-import { NextPage, NextPageContext } from 'next'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { db } from '../../plugins/firebase_config'
@@ -12,26 +11,25 @@ const useStyles = makeStyles(() =>
   })
 )
 
-type Props = {
-  id: string | string[]
-}
-
-const DiscussionId: NextPage<Props> = (props) => {
+const DiscussionId: React.FC = () => {
   const classes = useStyles()
   const router = useRouter()
-  const id = props.id
+  const [roomId, setRoomId] = useState('')
   const [roomTitle, setRoomTitle] = useState('')
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (process.browser) {
-      entryRoom()
+    if (router.asPath !== router.route) {
+      if (typeof router.query.id === "string") {
+        setRoomId(router.query.id);
+        entryRoom()
+      }
     }
-  }, [])
+  }, [router, roomId])
 
   const entryRoom = useCallback(() => {
-    if (typeof id === 'string') {
-      db.collection('rooms').doc(id).get().then(doc => {
+    if (roomId.length) {
+      db.collection('rooms').doc(roomId).get().then(doc => {
         if (doc.exists) {
           setRoomTitle(doc.data().title)
           setLoading(false)
@@ -41,20 +39,16 @@ const DiscussionId: NextPage<Props> = (props) => {
       }).catch(err => {
         alert(err.message)
       })
-    } else {
-      router.push('/discussion')
     }
-  }, [roomTitle, isLoading])
+  }, [roomId])
 
   const exitRoom = useCallback(() => {
-    if (typeof id === 'string') {
-      db.collection('rooms').doc(id).delete().then(() => {
-        router.push('/discussion')
-      }).catch(err => {
-        alert(err.message)
-      })
-    }
-  }, [])
+    db.collection('rooms').doc(roomId).delete().then(() => {
+      router.push('/discussion')
+    }).catch(err => {
+      alert(err.message)
+    })
+  }, [roomId])
 
   const loadingScreen = () => {
     return (
@@ -76,12 +70,4 @@ const DiscussionId: NextPage<Props> = (props) => {
     </div>
   )
 }
-
-DiscussionId.getInitialProps = async (context: NextPageContext): Promise<any> => {
-  const { id } = context.query
-  return {
-    id: id, // will be passed to the page component as props
-  }
-}
-
 export default DiscussionId
