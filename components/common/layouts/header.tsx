@@ -4,7 +4,7 @@ import classes from '../../../styles/common/layouts/Header.module.css'
 export default function Header() {
   return (
     <div className={classes.header}>
-      <div className="container">
+      <div className="container space-x-5">
         <Link href="/">
           <a className={classes.header_link}>Home</a>
         </Link>
