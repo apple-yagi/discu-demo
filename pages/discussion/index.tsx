@@ -1,25 +1,50 @@
-import { Router } from 'next/dist/client/router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router'
 import { db } from '../../plugins/firebase_config'
+import CreateRoomForm from '../../components/discussion/form/CreateRoomForm'
+import { Room } from '../../types/Room';
+import LoadingScreen from '../../components/common/loading/LoadingScreen'
+import Link from 'next/link';
 
 export default function Discussion() {
-  const [room, setRoom] = useState('')
   const router = useRouter()
+  const [rooms, setRooms] = useState<Room[] | null>(null)
 
-  const createRoom = useCallback(() => {
+  useEffect(() => {
+    const rs: Room[] = []
+    db.collection("rooms").get().then(function (querySnapshot) {
+      querySnapshot.forEach(function (doc) {
+        rs.push({ id: doc.id, ...doc.data() } as Room)
+      });
+    }).finally(() => {
+      setRooms([...rs])
+    })
+  }, [])
+
+  const createRoom = useCallback(async (room: string) => {
     db.collection('rooms').add({ title: room }).then(docs => {
       router.push(`/discussion/${docs.id}`)
     }).catch(err => {
       console.error(err)
     })
-  }, [room])
+  }, [])
 
   return (
     <div className="text-center">
-      <div>Discussion Page</div>
-      <input type="text" value={room} onChange={(e) => setRoom(e.target.value)} />
-      <button onClick={createRoom}>作成</button>
+      <h1>Discussion 一覧ページ</h1>
+      <CreateRoomForm create={createRoom} />
+      {rooms === null ?
+        <LoadingScreen /> :
+        <ul>
+          {rooms.map(room => (
+            <li key={room.id}>
+              <Link href={`/discussion/${room.id}`} >
+                <a>{room.title}</a>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      }
     </div>
   )
 }

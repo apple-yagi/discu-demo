@@ -1,21 +1,16 @@
-import { CircularProgress, createStyles, makeStyles } from '@material-ui/core'
+import { TextField } from '@material-ui/core'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
-import { db } from '../../plugins/firebase_config'
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    circular: {
-      marginTop: typeof innerHeight !== 'undefined' ? innerHeight / 2.3 : 100,
-    }
-  })
-)
+import firebase, { db } from '../../plugins/firebase_config'
+import DiscussionMessage from '../../components/discussion/message/DiscussionMessage'
+import { Room } from '../../types/Room'
+import LoadingScreen from '../../components/common/loading/LoadingScreen'
 
 const DiscussionId: React.FC = () => {
-  const classes = useStyles()
   const router = useRouter()
   const [roomId, setRoomId] = useState('')
-  const [roomTitle, setRoomTitle] = useState('')
+  const [room, setRoom] = useState<Room>()
+  const [opinion, setOpinion] = useState('')
   const [isLoading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,15 +24,13 @@ const DiscussionId: React.FC = () => {
 
   const entryRoom = useCallback(() => {
     if (roomId.length) {
-      db.collection('rooms').doc(roomId).get().then(doc => {
+      db.collection('rooms').doc(roomId).onSnapshot(doc => {
         if (doc.exists) {
-          setRoomTitle(doc.data().title)
+          setRoom({ id: doc.id, ...doc.data() } as Room)
           setLoading(false)
         } else {
           router.push('/discussion')
         }
-      }).catch(err => {
-        alert(err.message)
       })
     }
   }, [roomId])
@@ -50,24 +43,36 @@ const DiscussionId: React.FC = () => {
     })
   }, [roomId])
 
-  const loadingScreen = () => {
-    return (
-      <div className="w-full h-full text-center  fixed block top-0 left-0 bg-blue-100 opacity-75 z-50">
-        <CircularProgress className={classes.circular} style={{ width: 100, height: 100 }} />
-      </div>
-    )
-  }
+  const sendMessage = useCallback(async () => {
+    try {
+      // メッセージを登録
+      const docs = await db.collection('opinions').add({ text: opinion })
+      // ルームとメッセージを関係
+      await db.collection("rooms").doc(roomId).update({ opinions: firebase.firestore.FieldValue.arrayUnion(docs.id) })
+    } catch (err) {
+      alert(err.message)
+    }
+  }, [opinion])
 
   return (
     <div>
       {isLoading ?
-        loadingScreen() :
+        <LoadingScreen /> :
         <div className="text-center">
-          <h1>Room Title: {roomTitle}</h1>
+          <h1>{room.title}</h1>
+          {typeof room.opinions !== 'undefined' &&
+            room.opinions.map(opinion => (
+              <DiscussionMessage key={opinion} opinionId={opinion} />
+            ))
+          }
+          <div>
+            <TextField value={opinion} onChange={(e) => setOpinion(e.target.value)} variant="outlined" />
+            <button onClick={sendMessage} >送信</button>
+          </div>
           <button onClick={exitRoom} >退出</button>
         </div>
       }
-    </div>
+    </div >
   )
 }
 export default DiscussionId
