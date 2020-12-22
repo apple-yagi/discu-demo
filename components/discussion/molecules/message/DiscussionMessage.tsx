@@ -1,16 +1,20 @@
 import { CircularProgress, createStyles, makeStyles } from "@material-ui/core"
+import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import { useState, useEffect, useCallback } from "react"
-import { db } from "../../../plugins/firebase_config"
-import { Opinion } from "../../../types/Opinion"
+import { db } from "../../../../plugins/firebase_config"
+import { Opinion } from "../../../../types/Opinion"
 
 const useStyles = makeStyles(() =>
   createStyles({
     message: {
-      borderRadius: "20%",
-      width: 150,
-      height: 100,
-      textAlign: "center",
-      backgroundColor: "#a58eff"
+      width: '100%',
+      textAlign: "start"
+    },
+    userIcon: {
+      fontSize: "40px",
+      "@media (max-width: 480px)": {
+        fontSize: "25px"
+      },
     }
   })
 )
@@ -42,11 +46,20 @@ export default function DiscussionMessage({ opinionId }: Props) {
     setLoading(false)
   }, [opinionId])
 
+  const message = (text: string) => {
+    return (
+      <div className="d-flex">
+        <AccountCircleIcon className={classes.userIcon} style={{ verticalAlign: 'middle' }} />
+        <span style={{ verticalAlign: 'middle' }}>{text}</span>
+      </div>
+    )
+  }
+
   return (
     <div className={classes.message}>
       {isLoading ?
         <CircularProgress style={{ width: 20, height: 20 }} /> :
-        <span>{opinion.text}</span>
+        message(opinion.text)
       }
     </div>
   )

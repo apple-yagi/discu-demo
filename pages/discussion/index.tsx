@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router'
 import { db } from '../../plugins/firebase_config'
-import CreateRoomForm from '../../components/discussion/form/CreateRoomForm'
+import CreateRoomForm from '../../components/discussion/molecules/form/CreateRoomForm'
 import { Room } from '../../types/Room';
 import LoadingScreen from '../../components/common/loading/LoadingScreen'
 import Link from 'next/link';
@@ -12,13 +12,16 @@ export default function Discussion() {
 
   useEffect(() => {
     const rs: Room[] = []
-    db.collection("rooms").get().then(function (querySnapshot) {
-      querySnapshot.forEach(function (doc) {
+    const unsubscribe = db.collection("rooms").onSnapshot(querySnapshot => {
+      querySnapshot.forEach(doc => {
         rs.push({ id: doc.id, ...doc.data() } as Room)
-      });
-    }).finally(() => {
+      })
       setRooms([...rs])
     })
+
+    return function cleanup() {
+      unsubscribe()
+    }
   }, [])
 
   const createRoom = useCallback(async (room: string) => {

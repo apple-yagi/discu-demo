@@ -2,7 +2,7 @@ import { createStyles, makeStyles, TextField } from '@material-ui/core'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState, useRef } from 'react'
 import firebase, { db } from '../../plugins/firebase_config'
-import DiscussionMessage from '../../components/discussion/message/DiscussionMessage'
+import DiscussionMessage from '../../components/discussion/molecules/message/DiscussionMessage'
 import { Room } from '../../types/Room'
 import LoadingScreen from '../../components/common/loading/LoadingScreen'
 
@@ -22,14 +22,6 @@ const DiscussionId = () => {
   const [opinion, setOpinion] = useState('')
   const [isLoading, setLoading] = useState(true)
   const el = useRef<HTMLDivElement>(null)
-
-  const scrollToBottomOfList = useCallback(() => {
-    el!.current.scrollIntoView({
-      behavior: 'auto',
-      block: 'end'
-    })
-  }, [])
-
 
   useEffect(() => {
     if (router.asPath !== router.route) {
@@ -83,6 +75,13 @@ const DiscussionId = () => {
       alert(err.message)
     }
   }, [opinion])
+
+  const scrollToBottomOfList = useCallback(() => {
+    el!.current.scrollIntoView({
+      behavior: 'auto',
+      block: 'end'
+    })
+  }, [])
 
   return (
     <div>
